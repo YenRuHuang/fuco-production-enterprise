@@ -7,22 +7,8 @@
   "author": "Mursfoto Team",
   "main": "src/backend/server.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd src/backend && nodemon server.js",
-    "dev:frontend": "cd src/frontend && npm run dev",
-    "build": "echo '✅ Build completed - No build step required for this project'",
-    "build:frontend": "echo '✅ Frontend build skipped - Static files ready'",
-    "build:backend": "echo '✅ Backend build skipped - Node.js project ready'",
-    "start": "NODE_ENV=production node src/backend/server-simple.js",
-    "docker:build": "docker-compose -f deployment/docker/docker-compose.yml build",
-    "docker:up": "docker-compose -f deployment/docker/docker-compose.yml up -d",
-    "docker:down": "docker-compose -f deployment/docker/docker-compose.yml down",
-    "test": "jest",
-    "lint": "eslint src/",
-    "db:migrate": "node database/migrations/run.js",
-    "db:seed": "node database/seeds/run.js",
-    "license:generate": "node license/license-key-generator/generate.js",
-    "install:all": "npm install && cd src/frontend && npm install && cd ../backend && npm install"
+    "build": "echo 'Build completed'",
+    "start": "node src/backend/server-simple.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -30,15 +16,6 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2"
-  },
-  "devDependencies": {
-    "@types/node": "^20.10.5",
-    "concurrently": "^8.2.2",
-    "eslint": "^8.56.0",
-    "jest": "^29.7.0",
-    "nodemon": "^3.0.2",
-    "supertest": "^6.3.3",
-    "typescript": "^5.3.3"
   },
   "engines": {
     "node": ">=18.0.0",
