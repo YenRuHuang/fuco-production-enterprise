@@ -22,9 +22,9 @@ const {
 // 初始化 Express 應用
 const app = express();
 
-// 基礎配置
-const PORT = process.env.APP_PORT || 8847;
-const HOST = process.env.APP_HOST || '0.0.0.0';
+// 基礎配置 - Zeabur 部署優化
+const PORT = process.env.PORT || process.env.APP_PORT || 8847;
+const HOST = process.env.HOST || process.env.APP_HOST || '0.0.0.0';
 
 // 中間件配置
 app.use(cors({
