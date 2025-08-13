@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUCO 報表中心 - 生產管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --border: #e5e7eb;
+            --text: #374151;
+            --text-light: #6b7280;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid var(--border);
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title h1 {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: white;
+            color: var(--text);
+            font-size: 0.9em;
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: var(--light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
+
+        .production-chart {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .efficiency-summary {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .quality-analysis {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .performance-metrics {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .detailed-reports {
+            grid-column: 1 / 3;
+            grid-row: 3;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: var(--light);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-value.success { color: var(--success); }
+        .stat-value.warning { color: var(--warning); }
+        .stat-value.danger { color: var(--danger); }
+        .stat-value.primary { color: var(--primary); }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9em;
+        }
+
+        .metric-list {
+            list-style: none;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .metric-item:last-child {
+            border-bottom: none;
+        }
+
+        .metric-name {
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-weight: bold;
+        }
+
+        .metric-value.up {
+            color: var(--success);
+        }
+
+        .metric-value.down {
+            color: var(--danger);
+        }
+
+        .trend-indicator {
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .report-table th,
+        .report-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .report-table th {
+            background: var(--light);
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .report-table tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-badge.high {
+            background: var(--success);
+            color: white;
+        }
+
+        .status-badge.medium {
+            background: var(--warning);
+            color: white;
+        }
+
+        .status-badge.low {
+            background: var(--danger);
+            color: white;
+        }
+
+        .export-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-export {
+            background: var(--info);
+            color: white;
+            font-size: 0.8em;
+            padding: 6px 12px;
+        }
+
+        @media (max-width: 1200px) {
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .production-chart,
+            .efficiency-summary,
+            .quality-analysis,
+            .performance-metrics,
+            .detailed-reports {
+                grid-column: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                gap: 20px;
+                align-items: flex-start;
+            }
+            
+            .filter-controls {
+                flex-wrap: wrap;
+            }
+            
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">
+                <span>📊</span>
+                <span>FUCO 報表中心</span>
+            </div>
+            <div class="nav-actions">
+                <span id="currentTime">--:--:--</span>
+                <a href="index.html" class="btn btn-secondary">返回主頁</a>
+                <a href="dashboard-live.html" class="btn btn-primary">即時看板</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>生產報表分析</h1>
+                <p>生產統計圖表、效率分析與品質報告</p>
+            </div>
+            
+            <div class="filter-controls">
+                <select class="filter-select" id="timeRange">
+                    <option value="today">今日</option>
+                    <option value="week" selected>本週</option>
+                    <option value="month">本月</option>
+                    <option value="quarter">本季</option>
+                </select>
+                <select class="filter-select" id="department">
+                    <option value="all">全部部門</option>
+                    <option value="assembly">組裝部</option>
+                    <option value="quality">品質部</option>
+                    <option value="packaging">包裝部</option>
+                </select>
+                <button class="btn btn-primary" onclick="refreshReports()">🔄 更新</button>
+            </div>
+        </div>
+
+        <div class="reports-grid">
+            <!-- 生產趨勢圖表 -->
+            <div class="card production-chart fade-in">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span>📈</span>
+                        生產趨勢分析
+                    </h2>
+                    <div class="export-controls">
+                        <button class="btn btn-export" onclick="exportChart('production')">導出</button>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="productionChart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- 效率總覽 -->
+            <div class="card efficiency-summary fade-in">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span>⚡</span>
+                        效率總覽
+                    </h2>
+                </div>
+                
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-value success" id="overallEfficiency">92.5%</div>
+                        <div class="stat-label">整體效率</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value primary" id="avgCycleTime">28.5</div>
+                        <div class="stat-label">平均週期時間(分)</div>
+                    </div>
+                </div>
+
+                <ul class="metric-list">
+                    <li class="metric-item">
+                        <span class="metric-name">設備稼動率</span>
+                        <span class="metric-value up">94.2% <span class="trend-indicator">↗</span></span>
+                    </li>
+                    <li class="metric-item">
+                        <span class="metric-name">人員效率</span>
+                        <span class="metric-value up">88.7% <span class="trend-indicator">↗</span></span>
+                    </li>
+                    <li class="metric-item">
+                        <span class="metric-name">材料利用率</span>
+                        <span class="metric-value down">96.1% <span class="trend-indicator">↘</span></span>
+                    </li>
+                    <li class="metric-item">
+                        <span class="metric-name">交期達成率</span>
+                        <span class="metric-value up">95.8% <span class="trend-indicator">↗</span></span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 品質分析 -->
+            <div class="card quality-analysis fade-in">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span>🎯</span>
+                        品質分析報告
+                    </h2>
+                    <div class="export-controls">
+                        <button class="btn btn-export" onclick="exportChart('quality')">導出</button>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="qualityChart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- 績效指標 -->
+            <div class="card performance-metrics fade-in">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span>🏆</span>
+                        績效指標
+                    </h2>
+                </div>
+                
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-value warning" id="defectRate">3.2%</div>
+                        <div class="stat-label">不良率</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value success" id="firstPassYield">96.8%</div>
+                        <div class="stat-label">首次通過率</div>
+                    </div>
+                </div>
+
+                <ul class="metric-list">
+                    <li class="metric-item">
+                        <span class="metric-name">客戶滿意度</span>
+                        <span class="metric-value up">4.7/5.0 <span class="trend-indicator">↗</span></span>
+                    </li>
+                    <li class="metric-item">
+                        <span class="metric-name">準時交貨率</span>
+                        <span class="metric-value up">97.3% <span class="trend-indicator">↗</span></span>
+                    </li>
+                    <li class="metric-item">
+                        <span class="metric-name">成本節約</span>
+                        <span class="metric-value up">NT$125K <span class="trend-indicator">↗</span></span>
+                    </li>
+                    <li class="metric-item">
+                        <span class="metric-name">員工培訓達成</span>
+                        <span class="metric-value up">92.5% <span class="trend-indicator">↗</span></span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 詳細報表 -->
+            <div class="card detailed-reports fade-in">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span>📋</span>
+                        工作站效率詳細報表
+                    </h2>
+                    <div class="export-controls">
+                        <button class="btn btn-export" onclick="exportTable()">📤 導出Excel</button>
+                        <button class="btn btn-export" onclick="printReport()">🖨️ 列印</button>
+                    </div>
+                </div>
+                
+                <table class="report-table" id="detailedTable">
+                    <thead>
+                        <tr>
+                            <th>工作站</th>
+                            <th>計劃產量</th>
+                            <th>實際產量</th>
+                            <th>效率</th>
+                            <th>不良率</th>
+                            <th>狀態</th>
+                            <th>操作員</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody">
+                        <!-- 動態載入數據 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // 全域變數
+        let reportCharts = {};
+        let reportData = {};
+        const API_BASE_URL = '';
+        
+        // 認證相關
+        function getAuthToken() {
+            return localStorage.getItem('authToken');
+        }
+        
+        function getAuthHeaders() {
+            const token = getAuthToken();
+            return token ? { 'Authorization': `Bearer ${token}` } : {};
+        }
+        
+        // API 調用功能
+        async function fetchWithAuth(url, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...getAuthHeaders(),
+                ...options.headers
+            };
+            
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    headers
+                });
+                
+                if (response.status === 401) {
+                    console.warn('認證過期，使用訪客模式');
+                    localStorage.removeItem('authToken');
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API 調用失敗:', error);
+                throw error;
+            }
+        }
+        
+        // 載入報表統計數據
+        async function loadReportStats() {
+            try {
+                const timeRange = document.getElementById('timeRange').value;
+                const department = document.getElementById('department').value;
+                
+                const response = await fetchWithAuth(`${API_BASE_URL}/api/reports/stats?timeRange=${timeRange}&department=${department}`);
+                
+                if (response.success) {
+                    updateStatsDisplay(response.data);
+                }
+            } catch (error) {
+                console.error('載入統計數據失敗:', error);
+                showNotification('載入統計數據失敗', 'error');
+            }
+        }
+        
+        // 更新統計顯示
+        function updateStatsDisplay(stats) {
+            // 更新效率數據
+            document.getElementById('overallEfficiency').textContent = `${stats.efficiency.overall}%`;
+            document.getElementById('avgCycleTime').textContent = stats.efficiency.avgCycleTime;
+            
+            // 更新績效數據
+            document.getElementById('defectRate').textContent = `${stats.quality.defectRate}%`;
+            document.getElementById('firstPassYield').textContent = `${stats.quality.firstPassYield}%`;
+            
+            reportData.stats = stats;
+        }
+        
+        // 載入生產趨勢圖表
+        async function loadProductionChart() {
+            try {
+                const timeRange = document.getElementById('timeRange').value;
+                const response = await fetchWithAuth(`${API_BASE_URL}/api/reports/production-trend?timeRange=${timeRange}`);
+                
+                if (response.success) {
+                    renderProductionChart(response.data);
+                }
+            } catch (error) {
+                console.error('載入生產趨勢圖表失敗:', error);
+                showFallbackChart('productionChart', '生產趨勢圖表載入失敗');
+            }
+        }
+        
+        // 渲染生產趨勢圖表
+        function renderProductionChart(data) {
+            const ctx = document.getElementById('productionChart').getContext('2d');
+            
+            // 銷毀現有圖表
+            if (reportCharts.production) {
+                reportCharts.production.destroy();
+            }
+            
+            reportCharts.production = new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '生產趨勢分析',
+                            font: { size: 16 }
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '產量'
+                            }
+                        }
+                    },
+                    elements: {
+                        line: {
+                            tension: 0.2
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 載入品質分析圖表
+        async function loadQualityChart() {
+            try {
+                const timeRange = document.getElementById('timeRange').value;
+                const response = await fetchWithAuth(`${API_BASE_URL}/api/reports/quality-analysis?timeRange=${timeRange}`);
+                
+                if (response.success) {
+                    renderQualityChart(response.data.chart);
+                }
+            } catch (error) {
+                console.error('載入品質分析圖表失敗:', error);
+                showFallbackChart('qualityChart', '品質分析圖表載入失敗');
+            }
+        }
+        
+        // 渲染品質分析圖表
+        function renderQualityChart(data) {
+            const ctx = document.getElementById('qualityChart').getContext('2d');
+            
+            // 銷毀現有圖表
+            if (reportCharts.quality) {
+                reportCharts.quality.destroy();
+            }
+            
+            reportCharts.quality = new Chart(ctx, {
+                type: 'doughnut',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '不良原因分析',
+                            font: { size: 16 }
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 載入工作站效率報表
+        async function loadWorkstationEfficiency() {
+            try {
+                const timeRange = document.getElementById('timeRange').value;
+                const department = document.getElementById('department').value;
+                
+                const response = await fetchWithAuth(`${API_BASE_URL}/api/reports/workstation-efficiency?timeRange=${timeRange}&department=${department}`);
+                
+                if (response.success) {
+                    renderWorkstationTable(response.data);
+                }
+            } catch (error) {
+                console.error('載入工作站效率報表失敗:', error);
+                showNotification('載入工作站效率報表失敗', 'error');
+            }
+        }
+        
+        // 渲染工作站報表
+        function renderWorkstationTable(workstations) {
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = workstations.map(ws => `
+                <tr>
+                    <td>${ws.name}</td>
+                    <td>${ws.planned}</td>
+                    <td>${ws.actual}</td>
+                    <td>${ws.efficiency}%</td>
+                    <td>${ws.defectRate}%</td>
+                    <td><span class="status-badge ${ws.status}">${getStatusText(ws.status)}</span></td>
+                    <td>${ws.operator || '無'}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // 備用圖表顯示
+        function showFallbackChart(canvasId, message) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+        }
+        
+        // 通知功能
+        function showNotification(message, type = 'info') {
+            console.log(`${type.toUpperCase()}: ${message}`);
+            // 可以在此處添加 toast 通知
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            
+            // 載入初始數據
+            loadAllReports();
+            
+            // 綁定篩選器變更事件
+            document.getElementById('timeRange').addEventListener('change', refreshReports);
+            document.getElementById('department').addEventListener('change', refreshReports);
+            
+            console.log('📊 報表中心初始化完成');
+        });
+        
+        // 更新當前時間
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-TW', { hour12: false });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        
+        // 載入所有報表
+        async function loadAllReports() {
+            try {
+                await Promise.all([
+                    loadReportStats(),
+                    loadProductionChart(),
+                    loadQualityChart(),
+                    loadWorkstationEfficiency()
+                ]);
+                console.log('✅ 所有報表載入完成');
+            } catch (error) {
+                console.error('載入報表時發生錯誤:', error);
+            }
+        }
+        
+        function getStatusText(status) {
+            const statusMap = {
+                'high': '優秀',
+                'medium': '良好', 
+                'low': '需改善'
+            };
+            return statusMap[status] || '未知';
+        }
+        
+        // 功能函數
+        function refreshReports() {
+            console.log('🔄 刷新報表數據');
+            loadAllReports();
+        }
+        
+        // 導出功能
+        async function exportChart(type) {
+            try {
+                const response = await fetchWithAuth(`${API_BASE_URL}/api/reports/export`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        type,
+                        format: 'png',
+                        timeRange: document.getElementById('timeRange').value
+                    })
+                });
+                
+                if (response.success) {
+                    showNotification(`${type}圖表導出請求已提交，預計${response.estimatedTime}完成`, 'success');
+                }
+            } catch (error) {
+                console.error('導出圖表失敗:', error);
+                showNotification('導出圖表功能暫時無法使用', 'error');
+            }
+        }
+        
+        async function exportTable() {
+            try {
+                const response = await fetchWithAuth(`${API_BASE_URL}/api/reports/export`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        type: 'workstation-efficiency',
+                        format: 'excel',
+                        timeRange: document.getElementById('timeRange').value,
+                        department: document.getElementById('department').value
+                    })
+                });
+                
+                if (response.success) {
+                    showNotification(`Excel報表導出請求已提交，預計${response.estimatedTime}完成`, 'success');
+                }
+            } catch (error) {
+                console.error('導出Excel失敗:', error);
+                showNotification('導出Excel功能暫時無法使用', 'error');
+            }
+        }
+        
+        function printReport() {
+            window.print();
+        }
+    </script>
+</body>
+</html>

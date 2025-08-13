@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUCO 生產記錄 - 生產管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --border: #e5e7eb;
+            --text: #374151;
+            --text-light: #6b7280;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid var(--border);
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .page-title {
+            margin-bottom: 30px;
+        }
+
+        .page-title h1 {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-value.success { color: var(--success); }
+        .stat-value.primary { color: var(--primary); }
+        .stat-value.danger { color: var(--danger); }
+        .stat-value.warning { color: var(--warning); }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9em;
+        }
+
+        .production-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            padding: 12px 24px;
+            font-size: 1.1em;
+        }
+
+        @media (max-width: 768px) {
+            .production-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">
+                <span>🏭</span>
+                <span>FUCO 生產記錄</span>
+            </div>
+            <div class="nav-actions">
+                <span id="currentTime">--:--:--</span>
+                <a href="index.html" class="btn btn-secondary">返回主頁</a>
+                <a href="dashboard-live.html" class="btn btn-primary">即時看板</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-title">
+            <h1>生產記錄管理</h1>
+            <p>工單生產記錄、品質檢查與不良品管理</p>
+        </div>
+
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-value success" id="completedCount">156</div>
+                <div class="stat-label">今日完成</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value primary" id="targetCount">200</div>
+                <div class="stat-label">目標數量</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value danger" id="defectCount">8</div>
+                <div class="stat-label">不良品</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value warning" id="qualityRate">95.2%</div>
+                <div class="stat-label">良品率</div>
+            </div>
+        </div>
+
+        <div class="production-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span>✏️</span>
+                        生產記錄
+                    </h2>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">工單號碼</label>
+                    <select class="form-input" id="workOrderSelect">
+                        <option value="">選擇工單</option>
+                        <option value="WO-2024-001">WO-2024-001 - 產品A100</option>
+                        <option value="WO-2024-002">WO-2024-002 - 產品B200</option>
+                        <option value="WO-2024-003">WO-2024-003 - 產品C300</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">完成數量</label>
+                    <input type="number" class="form-input" id="completedQuantity" placeholder="0" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">不良品數量</label>
+                    <input type="number" class="form-input" id="defectQuantity" placeholder="0" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">操作員備註</label>
+                    <textarea class="form-input" id="operatorNotes" rows="3" placeholder="記錄生產過程中的特殊情況..."></textarea>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span>✅</span>
+                        品質檢查
+                    </h2>
+                </div>
+                
+                <div id="qualityChecks">
+                    <div style="padding: 20px; text-align: center; color: var(--text-light);">
+                        請先選擇工單以載入品質檢查項目
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button type="button" class="btn btn-success" onclick="submitProduction()">
+                💾 提交生產記錄
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                🗑️ 清空表單
+            </button>
+        </div>
+    </div>
+
+    <script>
+        class ProductionRecordManager {
+            constructor() {
+                this.apiBase = 'http://localhost:8847/api';
+                this.token = localStorage.getItem('fuco_token');
+                this.currentQualityChecks = [];
+                this.init();
+            }
+
+            async init() {
+                this.updateCurrentTime();
+                setInterval(() => this.updateCurrentTime(), 1000);
+                
+                await this.loadTodayStats();
+                await this.loadWorkOrders();
+                this.setupEventListeners();
+                
+                console.log('🚀 生產記錄系統初始化完成');
+            }
+
+            updateCurrentTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('zh-TW', { hour12: false });
+                document.getElementById('currentTime').textContent = timeString;
+            }
+
+            setupEventListeners() {
+                // 工單選擇事件
+                document.getElementById('workOrderSelect').addEventListener('change', (e) => {
+                    this.onWorkOrderChange(e.target.value);
+                });
+            }
+
+            async loadTodayStats() {
+                try {
+                    const response = await fetch(`${this.apiBase}/production/today-stats`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.updateStatsDisplay(data.data);
+                    }
+                } catch (error) {
+                    console.error('載入今日統計失敗:', error);
+                }
+            }
+
+            updateStatsDisplay(stats) {
+                document.getElementById('completedCount').textContent = stats.completedCount || 0;
+                document.getElementById('targetCount').textContent = stats.targetCount || 0;
+                document.getElementById('defectCount').textContent = stats.defectCount || 0;
+                document.getElementById('qualityRate').textContent = (stats.qualityRate || 0) + '%';
+            }
+
+            async loadWorkOrders() {
+                try {
+                    const response = await fetch(`${this.apiBase}/production/work-orders`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.populateWorkOrderSelect(data.data);
+                    }
+                } catch (error) {
+                    console.error('載入工單列表失敗:', error);
+                }
+            }
+
+            populateWorkOrderSelect(workOrders) {
+                const select = document.getElementById('workOrderSelect');
+                select.innerHTML = '<option value="">選擇工單</option>';
+                
+                workOrders.forEach(order => {
+                    const option = document.createElement('option');
+                    option.value = order.id;
+                    option.textContent = `${order.id} - ${order.productName} (${order.completedQuantity}/${order.targetQuantity})`;
+                    option.dataset.priority = order.priority;
+                    select.appendChild(option);
+                });
+            }
+
+            async onWorkOrderChange(workOrderId) {
+                if (!workOrderId) {
+                    this.clearQualityChecks();
+                    return;
+                }
+                
+                await this.loadQualityChecks(workOrderId);
+            }
+
+            async loadQualityChecks(workOrderId) {
+                try {
+                    const response = await fetch(`${this.apiBase}/production/work-orders/${workOrderId}/quality-checks`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.currentQualityChecks = data.data;
+                        this.renderQualityChecks(data.data);
+                    }
+                } catch (error) {
+                    console.error('載入品質檢查項目失敗:', error);
+                }
+            }
+
+            renderQualityChecks(checks) {
+                const container = document.getElementById('qualityChecks');
+                
+                if (checks.length === 0) {
+                    container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-light);">此工單無品質檢查項目</div>';
+                    return;
+                }
+                
+                const html = checks.map(check => `
+                    <div class="quality-check-item" data-id="${check.id}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-weight: 600; ${check.required ? 'color: var(--danger);' : ''}">${check.name} ${check.required ? '*' : ''}</span>
+                            <span style="font-size: 0.8em; background: var(--light); padding: 2px 8px; border-radius: 4px;">${this.getCheckTypeLabel(check.type)}</span>
+                        </div>
+                        <div style="display: flex; gap: 15px;">
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="radio" name="qc_${check.id}" value="true" ${check.passed === true ? 'checked' : ''}>
+                                <span style="color: var(--success);">✅ 通過</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                <input type="radio" name="qc_${check.id}" value="false" ${check.passed === false ? 'checked' : ''}>
+                                <span style="color: var(--danger);">❌ 未通過</span>
+                            </label>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.innerHTML = html;
+            }
+
+            getCheckTypeLabel(type) {
+                const labels = {
+                    'visual': '外觀',
+                    'measurement': '測量',
+                    'function': '功能',
+                    'packaging': '包裝',
+                    'material': '材質',
+                    'weight': '重量',
+                    'labeling': '標籤',
+                    'color': '顏色',
+                    'surface': '表面',
+                    'assembly': '組裝'
+                };
+                return labels[type] || type;
+            }
+
+            clearQualityChecks() {
+                document.getElementById('qualityChecks').innerHTML = 
+                    '<div style="padding: 20px; text-align: center; color: var(--text-light);">請先選擇工單以載入品質檢查項目</div>';
+                this.currentQualityChecks = [];
+            }
+
+            async submitProduction() {
+                const workOrder = document.getElementById('workOrderSelect').value;
+                const completed = document.getElementById('completedQuantity').value;
+                const defects = document.getElementById('defectQuantity').value;
+                const notes = document.getElementById('operatorNotes').value;
+
+                if (!workOrder) {
+                    alert('請選擇工單');
+                    return;
+                }
+
+                if (!completed || completed <= 0) {
+                    alert('請輸入完成數量');
+                    return;
+                }
+
+                // 收集品質檢查結果
+                const qualityChecks = this.collectQualityChecks();
+
+                if (!this.validateQualityChecks(qualityChecks)) {
+                    alert('請完成所有必填的品質檢查項目');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${this.apiBase}/production/records`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({
+                            workOrderId: workOrder,
+                            completedQuantity: parseInt(completed),
+                            defectQuantity: parseInt(defects) || 0,
+                            qualityChecks,
+                            operatorNotes: notes
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        alert(`生產記錄提交成功！\n記錄ID: ${data.data.id}\n工單: ${workOrder}\n完成: ${completed}件\n不良: ${defects || 0}件`);
+                        this.clearForm();
+                        await this.loadTodayStats(); // 刷新統計
+                    } else {
+                        alert(`提交失敗: ${data.message}`);
+                    }
+                } catch (error) {
+                    console.error('提交生產記錄失敗:', error);
+                    alert('網路錯誤，請稍後再試');
+                }
+            }
+
+            collectQualityChecks() {
+                const checks = [];
+                this.currentQualityChecks.forEach(check => {
+                    const radios = document.querySelectorAll(`input[name="qc_${check.id}"]`);
+                    const checkedRadio = Array.from(radios).find(r => r.checked);
+                    
+                    if (checkedRadio) {
+                        checks.push({
+                            id: check.id,
+                            name: check.name,
+                            type: check.type,
+                            required: check.required,
+                            passed: checkedRadio.value === 'true'
+                        });
+                    }
+                });
+                return checks;
+            }
+
+            validateQualityChecks(qualityChecks) {
+                const requiredChecks = this.currentQualityChecks.filter(c => c.required);
+                const completedRequiredChecks = qualityChecks.filter(c => c.required);
+                
+                return requiredChecks.length === completedRequiredChecks.length;
+            }
+
+            clearForm() {
+                document.getElementById('workOrderSelect').value = '';
+                document.getElementById('completedQuantity').value = '';
+                document.getElementById('defectQuantity').value = '';
+                document.getElementById('operatorNotes').value = '';
+                this.clearQualityChecks();
+            }
+        }
+
+        // 全域函數 (向後相容)
+        let productionManager;
+
+        function submitProduction() {
+            if (productionManager) {
+                productionManager.submitProduction();
+            }
+        }
+
+        function clearForm() {
+            if (productionManager) {
+                productionManager.clearForm();
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            productionManager = new ProductionRecordManager();
+        });
+    </script>
+</body>
+</html>

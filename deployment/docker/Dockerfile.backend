@@ -1,0 +1,76 @@
+# FUCO Production System - Backend Dockerfile
+FROM node:20-alpine AS builder
+
+# 設置工作目錄
+WORKDIR /app
+
+# 安裝系統依賴
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    pango-dev \
+    jpeg-dev \
+    giflib-dev \
+    librsvg-dev
+
+# 複製 package.json 文件
+COPY package*.json ./
+COPY src/backend/package*.json ./src/backend/
+
+# 安裝依賴
+RUN npm ci --only=production
+RUN cd src/backend && npm ci --only=production
+
+# 複製源代碼
+COPY . .
+
+# 建置階段
+FROM node:20-alpine
+
+# 安裝運行時依賴
+RUN apk add --no-cache \
+    cairo \
+    pango \
+    jpeg \
+    giflib \
+    librsvg \
+    curl \
+    tzdata
+
+# 設置時區
+ENV TZ=Asia/Taipei
+
+# 創建非 root 用戶
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# 設置工作目錄
+WORKDIR /app
+
+# 從 builder 階段複製文件
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/src ./src
+COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
+COPY --from=builder --chown=nodejs:nodejs /app/deployment ./deployment
+COPY --from=builder --chown=nodejs:nodejs /app/database ./database
+COPY --from=builder --chown=nodejs:nodejs /app/integration ./integration
+COPY --from=builder --chown=nodejs:nodejs /app/license ./license
+
+# 創建必要的目錄
+RUN mkdir -p uploads logs reports backups ai-models && \
+    chown -R nodejs:nodejs uploads logs reports backups ai-models
+
+# 切換到非 root 用戶
+USER nodejs
+
+# 暴露端口
+EXPOSE 3000
+
+# 健康檢查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node src/backend/healthcheck.js || exit 1
+
+# 啟動命令
+CMD ["node", "src/backend/server.js"]

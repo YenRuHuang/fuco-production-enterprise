@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUCO 即時監控看板 - 生產管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --dark: #1f2937;
+            --light: #f9fafb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft JhengHei', sans-serif;
+            background: #0f172a;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* 全螢幕看板樣式 */
+        .dashboard-container {
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+        }
+
+        /* 頂部標題區 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 25px 30px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .main-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .main-title h1 {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-icon {
+            font-size: 3em;
+            filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.5));
+        }
+
+        .live-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.2em;
+        }
+
+        .live-indicator {
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 15px #10b981;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        /* 網格佈局 */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: auto auto auto;
+            gap: 20px;
+            min-height: calc(100vh - 150px);
+        }
+
+        /* 卡片基礎樣式 */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        /* 統計卡片 */
+        .stat-cards {
+            grid-column: 1 / 5;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .stat-card.production::before { background: linear-gradient(90deg, #667eea, #764ba2); }
+        .stat-card.quality::before { background: linear-gradient(90deg, #10b981, #059669); }
+        .stat-card.efficiency::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .stat-card.workorders::before { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+
+        .stat-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-size: 3.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 0.9em;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .stat-change.positive {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .stat-change.negative {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        /* 生產趨勢圖表 */
+        .production-chart {
+            grid-column: 1 / 3;
+            grid-row: 2;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .chart-title {
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            height: 280px;
+            position: relative;
+        }
+
+        #productionChart {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        /* 工作站狀態 */
+        .workstation-status {
+            grid-column: 3 / 5;
+            grid-row: 2;
+        }
+
+        .workstation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .workstation-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+
+        .workstation-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .workstation-item.active { border-left-color: #10b981; }
+        .workstation-item.idle { border-left-color: #f59e0b; }
+        .workstation-item.maintenance { border-left-color: #ef4444; }
+
+        .workstation-id {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .workstation-name {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .workstation-operator {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-bottom: 10px;
+        }
+
+        .workstation-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .badge-idle {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .badge-maintenance {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        /* 告警和日誌面板 */
+        .alerts-panel,
+        .production-log {
+            grid-column: span 2;
+            grid-row: 3;
+        }
+
+        .alert-list,
+        .log-list {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .alert-item,
+        .log-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+
+        .alert-item:hover,
+        .log-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .alert-item.high { border-left-color: #ef4444; }
+        .alert-item.medium { border-left-color: #f59e0b; }
+        .alert-item.low { border-left-color: #3b82f6; }
+
+        /* 響應式設計 */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .stat-cards {
+                grid-column: 1 / 3;
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .production-chart,
+            .workstation-status,
+            .alerts-panel,
+            .production-log {
+                grid-column: 1 / 3;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-cards {
+                grid-column: 1;
+                grid-template-columns: 1fr;
+            }
+            
+            .production-chart,
+            .workstation-status,
+            .alerts-panel,
+            .production-log {
+                grid-column: 1;
+            }
+        }
+
+        /* 載入動畫 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- 頂部標題 -->
+        <div class="header">
+            <div class="main-title">
+                <div class="logo-icon">🏭</div>
+                <div>
+                    <h1>FUCO 即時監控看板</h1>
+                    <div style="font-size: 0.6em; opacity: 0.8; margin-top: 5px;">福桑聯合生產管理系統</div>
+                </div>
+            </div>
+            <div class="live-status">
+                <div class="live-indicator"></div>
+                <div>
+                    <div>即時監控中</div>
+                    <div style="font-size: 0.8em; opacity: 0.7;" id="lastUpdate">最後更新: --:--:--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 儀表板網格 -->
+        <div class="dashboard-grid">
+            <!-- 統計卡片區 -->
+            <div class="stat-cards">
+                <div class="stat-card production">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value" id="todayProduction">--</div>
+                    <div class="stat-label">今日生產量</div>
+                    <div class="stat-change positive" id="productionChange">
+                        <span>↑</span>
+                        <span>載入中...</span>
+                    </div>
+                </div>
+
+                <div class="stat-card quality">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value" id="qualityRate">--%</div>
+                    <div class="stat-label">良品率</div>
+                    <div class="stat-change positive" id="qualityChange">
+                        <span>↑</span>
+                        <span>載入中...</span>
+                    </div>
+                </div>
+
+                <div class="stat-card efficiency">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-value" id="efficiencyRate">--%</div>
+                    <div class="stat-label">設備稼動率</div>
+                    <div class="stat-change negative" id="efficiencyChange">
+                        <span>↓</span>
+                        <span>載入中...</span>
+                    </div>
+                </div>
+
+                <div class="stat-card workorders">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-value" id="activeWorkOrders">--</div>
+                    <div class="stat-label">進行中工單</div>
+                    <div class="stat-change positive" id="workOrderChange">
+                        <span>→</span>
+                        <span>載入中...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 生產趨勢圖表 -->
+            <div class="card production-chart">
+                <div class="chart-header">
+                    <h2 class="chart-title">生產趨勢</h2>
+                    <div style="font-size: 0.9em; opacity: 0.8;">今日即時</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="productionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 工作站狀態 -->
+            <div class="card workstation-status">
+                <div class="chart-header">
+                    <h2 class="chart-title">工作站狀態</h2>
+                    <div style="font-size: 0.9em; opacity: 0.8;">即時更新</div>
+                </div>
+                <div class="workstation-grid" id="workstationGrid">
+                    <!-- 動態載入 -->
+                </div>
+            </div>
+
+            <!-- 告警面板 -->
+            <div class="card alerts-panel">
+                <div class="chart-header">
+                    <h2 class="chart-title">系統告警</h2>
+                    <div style="font-size: 0.9em; opacity: 0.8;" id="alertCount">0 個告警</div>
+                </div>
+                <div class="alert-list" id="alertList">
+                    <!-- 動態載入 -->
+                </div>
+            </div>
+
+            <!-- 生產日誌 -->
+            <div class="card production-log">
+                <div class="chart-header">
+                    <h2 class="chart-title">生產日誌</h2>
+                    <div style="font-size: 0.9em; opacity: 0.8;">即時記錄</div>
+                </div>
+                <div class="log-list" id="logList">
+                    <!-- 動態載入 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API 配置
+        const API_BASE = 'http://localhost:8847/api';
+        let updateInterval;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard();
+            startAutoUpdate();
+        });
+
+        // 初始化儀表板
+        function initDashboard() {
+            console.log('🚀 初始化即時監控看板...');
+            loadProductionStats();
+            loadWorkstationStatus();
+            loadAlerts();
+            loadProductionLog();
+            drawProductionChart();
+            updateTimestamp();
+        }
+
+        // 載入生產統計
+        async function loadProductionStats() {
+            try {
+                const response = await fetch(`${API_BASE}/production/stats`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const stats = data.data.today;
+                    
+                    // 更新統計卡片
+                    document.getElementById('todayProduction').textContent = 
+                        stats.totalProduction.toLocaleString();
+                    document.getElementById('qualityRate').textContent = 
+                        (100 - stats.defectRate).toFixed(1) + '%';
+                    document.getElementById('efficiencyRate').textContent = 
+                        stats.efficiency.toFixed(1) + '%';
+                    
+                    // 更新變化趨勢（模擬數據）
+                    updateStatChange('productionChange', 'positive', '12.5% 較昨日');
+                    updateStatChange('qualityChange', 'positive', '2.3% 改善');
+                    updateStatChange('efficiencyChange', 'negative', '1.2% 下降');
+                    
+                    // 載入工單數據
+                    loadWorkOrderCount();
+                    
+                    console.log('✅ 生產統計載入完成');
+                }
+            } catch (error) {
+                console.error('❌ 載入生產統計失敗:', error);
+            }
+        }
+
+        // 載入工單數據
+        async function loadWorkOrderCount() {
+            try {
+                const response = await fetch(`${API_BASE}/work-orders`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const activeOrders = data.data.filter(order => order.status !== 'completed');
+                    document.getElementById('activeWorkOrders').textContent = activeOrders.length;
+                    updateStatChange('workOrderChange', 'positive', '2 單新增');
+                }
+            } catch (error) {
+                console.error('❌ 載入工單數據失敗:', error);
+            }
+        }
+
+        // 載入工作站狀態
+        async function loadWorkstationStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/workstations`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const grid = document.getElementById('workstationGrid');
+                    grid.innerHTML = data.data.map(ws => {
+                        const statusClass = ws.status;
+                        const statusText = {
+                            'active': '運行中',
+                            'idle': '閒置',
+                            'maintenance': '維護中'
+                        }[ws.status];
+                        
+                        return `
+                            <div class="workstation-item ${statusClass}">
+                                <div class="workstation-id">工作站 ${ws.id}</div>
+                                <div class="workstation-name">${ws.name}</div>
+                                ${ws.operator ? `<div class="workstation-operator">操作員: ${ws.operator}</div>` : ''}
+                                <div class="workstation-badge badge-${statusClass}">${statusText}</div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    console.log('✅ 工作站狀態載入完成');
+                }
+            } catch (error) {
+                console.error('❌ 載入工作站狀態失敗:', error);
+            }
+        }
+
+        // 載入告警資訊
+        function loadAlerts() {
+            const alerts = [
+                {
+                    level: 'high',
+                    icon: '🚨',
+                    title: '設備溫度異常',
+                    description: '工作站 D 溫度超過安全範圍',
+                    time: '2分鐘前'
+                },
+                {
+                    level: 'medium',
+                    icon: '⚠️',
+                    title: '原料庫存不足',
+                    description: '零件 A 庫存量低於安全庫存',
+                    time: '15分鐘前'
+                },
+                {
+                    level: 'low',
+                    icon: 'ℹ️',
+                    title: '預防保養提醒',
+                    description: '工作站 B 下週需要例行保養',
+                    time: '1小時前'
+                }
+            ];
+
+            const alertList = document.getElementById('alertList');
+            alertList.innerHTML = alerts.map(alert => `
+                <div class="alert-item ${alert.level}">
+                    <div style="font-size: 1.5em;">${alert.icon}</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; margin-bottom: 5px;">${alert.title}</div>
+                        <div style="font-size: 0.9em; opacity: 0.8;">${alert.description}</div>
+                    </div>
+                    <div style="font-size: 0.8em; opacity: 0.6;">${alert.time}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('alertCount').textContent = `${alerts.length} 個告警`;
+        }
+
+        // 載入生產日誌
+        function loadProductionLog() {
+            const logs = [
+                { time: '14:05:23', level: 'success', message: '工作站 A 完成工單 WO-2024-001 第32件產品' },
+                { time: '14:04:45', level: 'info', message: '工作站 B 品質檢查通過，良品率 97.2%' },
+                { time: '14:03:12', level: 'warning', message: '工作站 D 進入維護模式' },
+                { time: '14:02:38', level: 'info', message: '工作站 A 開始生產工單 WO-2024-001' },
+                { time: '14:01:55', level: 'success', message: '系統自動備份完成' }
+            ];
+
+            const logList = document.getElementById('logList');
+            logList.innerHTML = logs.map(log => `
+                <div class="log-item">
+                    <div style="color: #64748b; white-space: nowrap; font-size: 0.8em;">${log.time}</div>
+                    <div style="width: 60px; text-align: center; font-weight: 600; font-size: 0.75em; padding: 2px 6px; border-radius: 4px; background: rgba(59, 130, 246, 0.2); color: #60a5fa;">${log.level.toUpperCase()}</div>
+                    <div style="flex: 1; opacity: 0.9; font-size: 0.85em;">${log.message}</div>
+                </div>
+            `).join('');
+        }
+
+        // 繪製生產趨勢圖表
+        function drawProductionChart() {
+            const canvas = document.getElementById('productionChart');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+            canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            
+            const width = canvas.offsetWidth;
+            const height = canvas.offsetHeight;
+            const data = [850, 920, 1100, 1250, 1400, 1550, 1650];
+            const labels = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'];
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // 繪製網格
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            
+            for (let i = 1; i < 5; i++) {
+                const y = (height / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // 繪製趨勢線
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            data.forEach((value, index) => {
+                const x = (width / (data.length - 1)) * index;
+                const y = height - (value / Math.max(...data)) * (height - 40) - 20;
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+            
+            // 繪製數據點
+            data.forEach((value, index) => {
+                const x = (width / (data.length - 1)) * index;
+                const y = height - (value / Math.max(...data)) * (height - 40) - 20;
+                
+                ctx.fillStyle = '#667eea';
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // 標籤
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(labels[index], x, height - 5);
+            });
+        }
+
+        // 更新統計變化
+        function updateStatChange(elementId, type, text) {
+            const element = document.getElementById(elementId);
+            element.className = `stat-change ${type}`;
+            element.innerHTML = `<span>${type === 'positive' ? '↑' : type === 'negative' ? '↓' : '→'}</span><span>${text}</span>`;
+        }
+
+        // 更新時間戳
+        function updateTimestamp() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-TW', { hour12: false });
+            document.getElementById('lastUpdate').textContent = `最後更新: ${timeString}`;
+        }
+
+        // 開始自動更新
+        function startAutoUpdate() {
+            updateInterval = setInterval(() => {
+                loadProductionStats();
+                loadWorkstationStatus();
+                updateTimestamp();
+                
+                // 模擬數據更新
+                const productionValue = document.getElementById('todayProduction');
+                if (productionValue && productionValue.textContent !== '--') {
+                    const currentValue = parseInt(productionValue.textContent.replace(',', ''));
+                    const newValue = currentValue + Math.floor(Math.random() * 5);
+                    productionValue.textContent = newValue.toLocaleString();
+                }
+            }, 5000); // 每5秒更新
+        }
+
+        // 清理
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>設備配置 - FUCO Production System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --dark: #1f2937;
+            --light: #f8fafc;
+            --border: #e5e7eb;
+            --text: #374151;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: var(--dark);
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .workstation-info {
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+        }
+
+        .equipment-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .equipment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .equipment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+
+        .equipment-title {
+            color: var(--dark);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .equipment-model {
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .status-indicator {
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-running {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-idle {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-maintenance {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-running .status-dot {
+            background: var(--success);
+        }
+
+        .status-idle .status-dot {
+            background: var(--warning);
+        }
+
+        .status-maintenance .status-dot {
+            background: var(--danger);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .equipment-details {
+            margin-bottom: 25px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            color: var(--text);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .detail-value {
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .configuration-section {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .config-title {
+            color: var(--primary);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .config-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .config-value {
+            color: var(--primary);
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .config-label {
+            color: var(--text);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .maintenance-section {
+            background: rgba(245, 158, 11, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .maintenance-title {
+            color: var(--warning);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .maintenance-timeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .timeline-item {
+            text-align: center;
+        }
+
+        .timeline-date {
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .timeline-label {
+            color: var(--text);
+            font-size: 0.8rem;
+        }
+
+        .timeline-arrow {
+            color: var(--warning);
+            font-size: 1.2rem;
+        }
+
+        .alerts-section {
+            background: rgba(239, 68, 68, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .alerts-title {
+            color: var(--danger);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert-item {
+            background: white;
+            border-radius: 8px;
+            padding: 12px 15px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-icon {
+            color: var(--danger);
+            font-size: 1.1rem;
+        }
+
+        .alert-text {
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .no-alerts {
+            color: var(--success);
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--primary);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            text-align: center;
+            padding: 60px;
+            color: var(--danger);
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .equipment-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .config-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .maintenance-timeline {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .timeline-arrow {
+                transform: rotate(90deg);
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .back-button {
+                top: 20px;
+                left: 20px;
+                width: 45px;
+                height: 45px;
+            }
+            
+            .action-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.location.href='index.html'">←</button>
+
+    <div class="container">
+        <div class="header" id="equipmentHeader">
+            <h1>⚙️ 設備配置</h1>
+            <div class="workstation-info" id="workstationInfo">載入中...</div>
+        </div>
+
+        <div class="equipment-grid" id="equipmentGrid">
+            <div class="loading">正在載入設備資訊...</div>
+        </div>
+    </div>
+
+    <script>
+        // 從 URL 獲取工作站 ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const workstationId = urlParams.get('id');
+
+        // 載入設備資料
+        async function loadEquipment(workstationId) {
+            try {
+                const response = await fetch(`/api/workstations/${workstationId}/equipment`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayEquipment(result.data);
+                    updateHeader(workstationId);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('載入設備列表失敗:', error);
+                document.getElementById('equipmentGrid').innerHTML = 
+                    '<div class="error">載入設備列表失敗</div>';
+            }
+        }
+
+        // 更新標題資訊
+        function updateHeader(workstationId) {
+            document.getElementById('workstationInfo').textContent = 
+                `工作站 ${workstationId} 的設備配置`;
+        }
+
+        // 顯示設備列表
+        function displayEquipment(equipment) {
+            if (equipment.length === 0) {
+                document.getElementById('equipmentGrid').innerHTML = 
+                    '<div class="error">此工作站暫無設備配置</div>';
+                return;
+            }
+
+            document.getElementById('equipmentGrid').innerHTML = 
+                equipment.map(eq => `
+                    <div class="equipment-card">
+                        <div class="equipment-header">
+                            <div>
+                                <div class="equipment-title">${eq.name}</div>
+                                <div class="equipment-model">型號: ${eq.model}</div>
+                            </div>
+                            <div class="status-indicator status-${eq.status}">
+                                <div class="status-dot"></div>
+                                ${getStatusText(eq.status)}
+                            </div>
+                        </div>
+                        
+                        <div class="equipment-details">
+                            <div class="detail-row">
+                                <span class="detail-label">設備編號</span>
+                                <span class="detail-value">${eq.id}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">序號</span>
+                                <span class="detail-value">${eq.serialNumber}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">製造商</span>
+                                <span class="detail-value">${eq.manufacturer}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">安裝日期</span>
+                                <span class="detail-value">${formatDate(eq.installDate)}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="configuration-section">
+                            <div class="config-title">⚙️ 當前配置</div>
+                            <div class="config-grid">
+                                ${Object.entries(eq.configuration).map(([key, value]) => `
+                                    <div class="config-item">
+                                        <div class="config-value">${value}</div>
+                                        <div class="config-label">${getConfigLabel(key)}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="maintenance-section">
+                            <div class="maintenance-title">🔧 維護資訊</div>
+                            <div class="maintenance-timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-date">${formatDate(eq.lastMaintenance)}</div>
+                                    <div class="timeline-label">最後維護</div>
+                                </div>
+                                <div class="timeline-arrow">→</div>
+                                <div class="timeline-item">
+                                    <div class="timeline-date">${formatDate(eq.nextMaintenance)}</div>
+                                    <div class="timeline-label">下次維護</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alerts-section">
+                            <div class="alerts-title">⚠️ 警示狀況</div>
+                            ${eq.alerts && eq.alerts.length > 0 ? 
+                                eq.alerts.map(alert => `
+                                    <div class="alert-item">
+                                        <div class="alert-icon">⚠️</div>
+                                        <div class="alert-text">${alert}</div>
+                                    </div>
+                                `).join('') :
+                                '<div class="no-alerts">✅ 目前無警示</div>'
+                            }
+                        </div>
+                        
+                        <div class="action-buttons">
+                            ${eq.status === 'running' ? 
+                                '<button class="btn btn-warning" onclick="stopEquipment(\'' + eq.id + '\')">⏸️ 停止設備</button>' :
+                                '<button class="btn btn-primary" onclick="startEquipment(\'' + eq.id + '\')">▶️ 啟動設備</button>'
+                            }
+                            <button class="btn btn-secondary" onclick="configureEquipment('${eq.id}')">⚙️ 參數配置</button>
+                            <button class="btn btn-secondary" onclick="viewLogs('${eq.id}')">📊 運行記錄</button>
+                            <button class="btn btn-warning" onclick="scheduleMaintenance('${eq.id}')">🔧 排程維護</button>
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        // 獲取狀態文字
+        function getStatusText(status) {
+            const statusMap = {
+                'running': '運行中',
+                'idle': '待機',
+                'maintenance': '維護中',
+                'error': '故障'
+            };
+            return statusMap[status] || status;
+        }
+
+        // 獲取配置標籤
+        function getConfigLabel(key) {
+            const labelMap = {
+                'speed': '運轉速度',
+                'pressure': '壓力',
+                'temperature': '溫度',
+                'voltage': '電壓',
+                'frequency': '頻率',
+                'accuracy': '精度',
+                'power': '功率',
+                'current': '電流'
+            };
+            return labelMap[key] || key;
+        }
+
+        // 格式化日期
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('zh-TW');
+        }
+
+        // 啟動設備
+        function startEquipment(equipmentId) {
+            if (confirm('確定要啟動此設備嗎？')) {
+                // 這裡會調用實際的 API
+                alert(`設備 ${equipmentId} 啟動指令已發送`);
+                // 重新載入設備狀態
+                setTimeout(() => {
+                    loadEquipment(workstationId);
+                }, 1000);
+            }
+        }
+
+        // 停止設備
+        function stopEquipment(equipmentId) {
+            if (confirm('確定要停止此設備嗎？')) {
+                // 這裡會調用實際的 API
+                alert(`設備 ${equipmentId} 停止指令已發送`);
+                // 重新載入設備狀態
+                setTimeout(() => {
+                    loadEquipment(workstationId);
+                }, 1000);
+            }
+        }
+
+        // 配置設備參數
+        function configureEquipment(equipmentId) {
+            alert(`開啟設備 ${equipmentId} 參數配置介面`);
+            // 這裡可以開啟設備配置的模態框或新視窗
+        }
+
+        // 查看運行記錄
+        function viewLogs(equipmentId) {
+            alert(`查看設備 ${equipmentId} 的運行記錄`);
+            // 這裡可以開啟運行記錄的頁面
+        }
+
+        // 排程維護
+        function scheduleMaintenance(equipmentId) {
+            const date = prompt('請輸入維護日期 (YYYY-MM-DD):');
+            if (date) {
+                alert(`設備 ${equipmentId} 的維護已排程至 ${date}`);
+                // 這裡會調用實際的 API 來排程維護
+            }
+        }
+
+        // 頁面載入時執行
+        document.addEventListener('DOMContentLoaded', function() {
+            if (workstationId) {
+                loadEquipment(workstationId);
+                
+                // 每60秒自動更新一次設備狀態
+                setInterval(() => {
+                    loadEquipment(workstationId);
+                }, 60000);
+            } else {
+                document.getElementById('equipmentGrid').innerHTML = 
+                    '<div class="error">未指定工作站 ID</div>';
+            }
+        });
+    </script>
+</body>
+</html>

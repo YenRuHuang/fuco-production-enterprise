@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUCO 生產管理系統 - 登入</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 3rem;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4CAF50, #2196F3, #FF9800);
+        }
+
+        .logo {
+            margin-bottom: 2rem;
+        }
+
+        .logo h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo p {
+            color: #7f8c8d;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        .forgot-link {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        .system-info {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .system-info h4 {
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .demo-accounts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            text-align: left;
+        }
+
+        .demo-account {
+            background: white;
+            padding: 0.5rem;
+            border-radius: 5px;
+            border: 1px solid #e1e8ed;
+        }
+
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert-error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+        }
+
+        .alert-success {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #3c3;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 1rem;
+                padding: 2rem;
+            }
+            
+            .logo h1 {
+                font-size: 2rem;
+            }
+            
+            .demo-accounts {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>FUCO</h1>
+            <p>福桑聯合生產管理系統</p>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">工號 / 帳號</label>
+                <input type="text" id="username" name="username" class="form-control" 
+                       placeholder="請輸入工號或帳號" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">密碼</label>
+                <input type="password" id="password" name="password" class="form-control" 
+                       placeholder="請輸入密碼" required>
+            </div>
+
+            <div class="remember-forgot">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">記住我</label>
+                </div>
+                <a href="#" class="forgot-link">忘記密碼？</a>
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">
+                登入系統
+            </button>
+        </form>
+
+        <div class="system-info">
+            <h4>🎯 演示帳號</h4>
+            <div class="demo-accounts">
+                <div class="demo-account">
+                    <strong>管理員</strong><br>
+                    帳號: admin<br>
+                    密碼: admin123
+                </div>
+                <div class="demo-account">
+                    <strong>操作員</strong><br>
+                    帳號: emp001<br>
+                    密碼: password
+                </div>
+                <div class="demo-account">
+                    <strong>主管</strong><br>
+                    帳號: supervisor<br>
+                    密碼: super123
+                </div>
+                <div class="demo-account">
+                    <strong>品管</strong><br>
+                    帳號: qc001<br>
+                    密碼: qc123
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>登入中...</div>
+        </div>
+    </div>
+
+    <script>
+        class LoginManager {
+            constructor() {
+                this.apiBase = 'http://localhost:8847/api';
+                this.initEventListeners();
+                this.loadRememberMe();
+            }
+
+            initEventListeners() {
+                const form = document.getElementById('loginForm');
+                const loginBtn = document.getElementById('loginBtn');
+                
+                form.addEventListener('submit', (e) => this.handleLogin(e));
+                
+                // 演示帳號快速填入
+                document.querySelectorAll('.demo-account').forEach(account => {
+                    account.addEventListener('click', () => {
+                        const text = account.textContent;
+                        const usernameMatch = text.match(/帳號: (\w+)/);
+                        const passwordMatch = text.match(/密碼: (\w+)/);
+                        
+                        if (usernameMatch && passwordMatch) {
+                            document.getElementById('username').value = usernameMatch[1];
+                            document.getElementById('password').value = passwordMatch[1];
+                        }
+                    });
+                });
+
+                // Enter 鍵登入
+                document.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !loginBtn.disabled) {
+                        form.dispatchEvent(new Event('submit'));
+                    }
+                });
+            }
+
+            async handleLogin(event) {
+                event.preventDefault();
+                
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+                const remember = document.getElementById('remember').checked;
+
+                if (!username || !password) {
+                    this.showAlert('請輸入帳號和密碼', 'error');
+                    return;
+                }
+
+                this.showLoading(true);
+                this.setButtonState(false);
+
+                try {
+                    const response = await this.performLogin(username, password);
+                    
+                    if (response.success) {
+                        this.handleLoginSuccess(response.data, remember);
+                    } else {
+                        this.showAlert(response.message || '登入失敗', 'error');
+                    }
+                } catch (error) {
+                    console.error('登入錯誤:', error);
+                    this.showAlert('網路連線錯誤，請稍後再試', 'error');
+                } finally {
+                    this.showLoading(false);
+                    this.setButtonState(true);
+                }
+            }
+
+            async performLogin(username, password) {
+                // 調用真實的 JWT 認證 API
+                try {
+                    const response = await fetch(`${this.apiBase}/auth/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            username: username,
+                            password: password
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (response.ok && data.success) {
+                        return {
+                            success: true,
+                            data: {
+                                token: data.token,
+                                user: data.user
+                            }
+                        };
+                    } else {
+                        return {
+                            success: false,
+                            message: data.message || '登入失敗'
+                        };
+                    }
+                } catch (error) {
+                    console.error('API 調用錯誤:', error);
+                    return {
+                        success: false,
+                        message: '網路連線錯誤'
+                    };
+                }
+            }
+
+            getRolePermissions(role) {
+                const permissions = {
+                    '管理員': ['read', 'write', 'admin', 'report'],
+                    '主管': ['read', 'write', 'report'],
+                    '操作員': ['read', 'write'],
+                    '品管': ['read', 'write', 'qc']
+                };
+                return permissions[role] || ['read'];
+            }
+
+            handleLoginSuccess(data, remember) {
+                // 儲存登入資訊
+                localStorage.setItem('fuco_token', data.token);
+                localStorage.setItem('fuco_user', JSON.stringify(data.user));
+                
+                if (remember) {
+                    localStorage.setItem('fuco_remember', 'true');
+                    localStorage.setItem('fuco_username', data.user.username);
+                } else {
+                    localStorage.removeItem('fuco_remember');
+                    localStorage.removeItem('fuco_username');
+                }
+
+                this.showAlert(`歡迎回來，${data.user.name}！`, 'success');
+                
+                // 延遲跳轉到儀表板
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1000);
+            }
+
+            loadRememberMe() {
+                if (localStorage.getItem('fuco_remember') === 'true') {
+                    const savedUsername = localStorage.getItem('fuco_username');
+                    if (savedUsername) {
+                        document.getElementById('username').value = savedUsername;
+                        document.getElementById('remember').checked = true;
+                        document.getElementById('password').focus();
+                    }
+                }
+            }
+
+            showAlert(message, type) {
+                const alert = document.getElementById('alert');
+                alert.className = `alert alert-${type}`;
+                alert.textContent = message;
+                alert.style.display = 'block';
+                
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 5000);
+            }
+
+            showLoading(show) {
+                const loading = document.getElementById('loading');
+                loading.style.display = show ? 'block' : 'none';
+            }
+
+            setButtonState(enabled) {
+                const loginBtn = document.getElementById('loginBtn');
+                loginBtn.disabled = !enabled;
+                loginBtn.textContent = enabled ? '登入系統' : '登入中...';
+            }
+        }
+
+        // 檢查是否已登入
+        const checkAuthStatus = () => {
+            const token = localStorage.getItem('fuco_token');
+            if (token) {
+                // 如果已經有 token，直接跳轉到儀表板
+                window.location.href = '/dashboard';
+                return;
+            }
+        };
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthStatus();
+            new LoginManager();
+        });
+    </script>
+</body>
+</html>

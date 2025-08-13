@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>標準作業程序 - FUCO Production System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f8fafc;
+            --border: #e5e7eb;
+            --text: #374151;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .sop-title {
+            color: var(--dark);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sop-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .meta-label {
+            font-size: 0.8rem;
+            color: var(--text);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .meta-value {
+            font-size: 1rem;
+            color: var(--dark);
+            font-weight: 500;
+        }
+
+        .version-badge {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            width: fit-content;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-title {
+            color: var(--dark);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .safety-note {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+            color: var(--danger);
+            font-size: 0.9rem;
+        }
+
+        .tool-item, .material-item {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin: 4px;
+            display: inline-block;
+        }
+
+        .steps-container {
+            margin-top: 30px;
+        }
+
+        .step-item {
+            background: rgba(102, 126, 234, 0.03);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .step-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .step-title {
+            color: var(--dark);
+            font-size: 1.3rem;
+            font-weight: 600;
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .step-time {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .step-description {
+            color: var(--text);
+            font-size: 1rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .step-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .detail-section {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .detail-section h4 {
+            color: var(--dark);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .detail-list {
+            list-style: none;
+        }
+
+        .detail-list li {
+            color: var(--text);
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .detail-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            font-size: 0.9rem;
+            margin-top: 15px;
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+        }
+
+        .navigation {
+            position: fixed;
+            top: 50%;
+            right: 30px;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .back-button {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--primary);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 968px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .navigation {
+                position: static;
+                transform: none;
+                margin-top: 20px;
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .back-button {
+                top: 20px;
+                left: 20px;
+                width: 45px;
+                height: 45px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .step-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .step-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .sop-meta {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.location.href='index.html'">←</button>
+
+    <div class="navigation" id="stepNavigation">
+        <!-- 步驟導航將由 JavaScript 生成 -->
+    </div>
+
+    <div class="container">
+        <div class="header" id="sopHeader">
+            <!-- SOP 標題和資訊將由 JavaScript 填充 -->
+        </div>
+
+        <div class="content-grid">
+            <div class="main-content">
+                <div class="steps-container" id="stepsContainer">
+                    <!-- SOP 步驟將由 JavaScript 生成 -->
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="sidebar-card" id="safetyCard">
+                    <!-- 安全注意事項 -->
+                </div>
+                
+                <div class="sidebar-card" id="toolsCard">
+                    <!-- 工具列表 -->
+                </div>
+                
+                <div class="sidebar-card" id="materialsCard">
+                    <!-- 材料列表 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 從 URL 獲取 SOP ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const sopId = urlParams.get('id');
+
+        // 載入 SOP 資料
+        async function loadSOP(sopId) {
+            try {
+                const response = await fetch(`/api/sop/${sopId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    displaySOP(result.data);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('載入 SOP 失敗:', error);
+                document.getElementById('sopHeader').innerHTML = 
+                    '<div style="text-align: center; padding: 40px; color: var(--danger);">載入 SOP 失敗</div>';
+            }
+        }
+
+        // 顯示 SOP 內容
+        function displaySOP(sop) {
+            // 顯示標題和基本資訊
+            document.getElementById('sopHeader').innerHTML = `
+                <div class="sop-title">
+                    📋 ${sop.title}
+                    <div class="version-badge">${sop.version}</div>
+                </div>
+                
+                <div class="sop-meta">
+                    <div class="meta-item">
+                        <div class="meta-label">SOP 編號</div>
+                        <div class="meta-value">${sop.id}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">類別</div>
+                        <div class="meta-value">${sop.category}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">工作站</div>
+                        <div class="meta-value">${sop.workstation}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">預估時間</div>
+                        <div class="meta-value">${sop.estimatedTime}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">難度等級</div>
+                        <div class="meta-value">${sop.difficulty}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">最後更新</div>
+                        <div class="meta-value">${formatDate(sop.lastUpdated)}</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">核准者</div>
+                        <div class="meta-value">${sop.approver}</div>
+                    </div>
+                </div>
+            `;
+
+            // 顯示安全注意事項
+            document.getElementById('safetyCard').innerHTML = `
+                <div class="sidebar-title">⚠️ 安全注意事項</div>
+                ${sop.safetyNotes.map(note => 
+                    `<div class="safety-note">${note}</div>`
+                ).join('')}
+            `;
+
+            // 顯示工具列表
+            document.getElementById('toolsCard').innerHTML = `
+                <div class="sidebar-title">🔧 所需工具</div>
+                <div>
+                    ${sop.tools.map(tool => 
+                        `<span class="tool-item">${tool}</span>`
+                    ).join('')}
+                </div>
+            `;
+
+            // 顯示材料列表
+            document.getElementById('materialsCard').innerHTML = `
+                <div class="sidebar-title">📦 所需材料</div>
+                <div>
+                    ${sop.materials.map(material => 
+                        `<span class="material-item">${material}</span>`
+                    ).join('')}
+                </div>
+            `;
+
+            // 顯示步驟
+            displaySteps(sop.steps);
+            
+            // 生成導航
+            generateNavigation(sop.steps);
+        }
+
+        // 顯示步驟
+        function displaySteps(steps) {
+            document.getElementById('stepsContainer').innerHTML = 
+                steps.map((step, index) => `
+                    <div class="step-item" id="step-${step.step}">
+                        <div class="step-header">
+                            <div style="display: flex; align-items: center;">
+                                <div class="step-number">${step.step}</div>
+                                <div class="step-title">${step.title}</div>
+                            </div>
+                            <div class="step-time">${step.time}</div>
+                        </div>
+                        
+                        <div class="step-description">
+                            ${step.description}
+                        </div>
+                        
+                        <div class="image-placeholder">
+                            📷 SOP 圖片: ${step.image}
+                        </div>
+                        
+                        <div class="step-details">
+                            <div class="detail-section">
+                                <h4>🎯 操作要點</h4>
+                                <ul class="detail-list">
+                                    ${step.keyPoints.map(point => 
+                                        `<li>${point}</li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                            
+                            <div class="detail-section">
+                                <h4>✅ 品質要求</h4>
+                                <ul class="detail-list">
+                                    ${step.quality.map(quality => 
+                                        `<li>${quality}</li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        // 生成導航
+        function generateNavigation(steps) {
+            document.getElementById('stepNavigation').innerHTML = 
+                steps.map(step => 
+                    `<a href="#step-${step.step}" class="nav-item" onclick="highlightStep(${step.step})">${step.step}</a>`
+                ).join('');
+        }
+
+        // 高亮當前步驟
+        function highlightStep(stepNumber) {
+            // 移除所有 active 類
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 添加 active 類到當前項
+            event.target.classList.add('active');
+            
+            // 平滑滾動到步驟
+            document.getElementById(`step-${stepNumber}`).scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // 格式化日期
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('zh-TW');
+        }
+
+        // 監聽滾動事件，自動更新導航高亮
+        window.addEventListener('scroll', function() {
+            const steps = document.querySelectorAll('.step-item');
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            let current = '';
+            steps.forEach((step, index) => {
+                const rect = step.getBoundingClientRect();
+                if (rect.top <= 200) {
+                    current = step.id;
+                }
+            });
+            
+            if (current) {
+                const stepNumber = current.split('-')[1];
+                navItems.forEach(item => item.classList.remove('active'));
+                const activeNav = document.querySelector(`[href="#${current}"]`);
+                if (activeNav) activeNav.classList.add('active');
+            }
+        });
+
+        // 頁面載入時執行
+        document.addEventListener('DOMContentLoaded', function() {
+            if (sopId) {
+                loadSOP(sopId);
+            } else {
+                document.getElementById('sopHeader').innerHTML = 
+                    '<div style="text-align: center; padding: 40px; color: var(--danger);">未指定 SOP ID</div>';
+            }
+        });
+
+        // 鍵盤快捷鍵支援
+        document.addEventListener('keydown', function(e) {
+            const steps = document.querySelectorAll('.step-item');
+            const current = document.querySelector('.nav-item.active');
+            
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                const currentIndex = current ? Array.from(document.querySelectorAll('.nav-item')).indexOf(current) : -1;
+                const nextIndex = Math.min(currentIndex + 1, steps.length - 1);
+                if (nextIndex >= 0) {
+                    document.querySelectorAll('.nav-item')[nextIndex].click();
+                }
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                const currentIndex = current ? Array.from(document.querySelectorAll('.nav-item')).indexOf(current) : 1;
+                const prevIndex = Math.max(currentIndex - 1, 0);
+                document.querySelectorAll('.nav-item')[prevIndex].click();
+            }
+        });
+    </script>
+</body>
+</html>

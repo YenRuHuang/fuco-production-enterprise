@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作站管理 - FUCO Production System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f8fafc;
+            --border: #e5e7eb;
+            --text: #374151;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: var(--dark);
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .breadcrumb {
+            margin-top: 10px;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .workstation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .workstation-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .workstation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .workstation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+
+        .workstation-info h3 {
+            color: var(--dark);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .workstation-location {
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-idle {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-maintenance {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .workstation-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .workstation-details {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .detail-label {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .equipment-list {
+            margin-top: 15px;
+        }
+
+        .equipment-item {
+            display: inline-block;
+            background: rgba(118, 75, 162, 0.1);
+            color: var(--secondary);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin: 2px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--primary);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 工作站選擇模態框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            color: var(--dark);
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--text);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .workstation-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .workstation-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 15px 20px;
+            }
+            
+            .back-button {
+                top: 20px;
+                left: 20px;
+                width: 45px;
+                height: 45px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.location.href='/dashboard'">←</button>
+
+    <div class="container">
+        <div class="header">
+            <h1>🖥️ 工作站管理</h1>
+            <div class="breadcrumb">
+                <a href="/dashboard">首頁</a> > 工作站管理
+            </div>
+        </div>
+
+        <div class="workstation-grid" id="workstationGrid">
+            <!-- 工作站卡片將由 JavaScript 動態產生 -->
+        </div>
+    </div>
+
+    <!-- 工作站選擇模態框 -->
+    <div class="modal" id="selectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>選擇工作站</h2>
+                <p>請輸入操作員資訊以選擇此工作站</p>
+            </div>
+            
+            <form id="selectForm">
+                <div class="form-group">
+                    <label for="operatorId">員工編號</label>
+                    <input type="text" id="operatorId" name="operatorId" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="operatorName">員工姓名</label>
+                    <input type="text" id="operatorName" name="operatorName" required>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">確認選擇</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentWorkstation = null;
+
+        // 獲取並顯示工作站列表
+        async function loadWorkstations() {
+            try {
+                const response = await fetch('/api/workstations');
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayWorkstations(result.data);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('載入工作站列表失敗:', error);
+                document.getElementById('workstationGrid').innerHTML = 
+                    '<div style="text-align: center; padding: 40px; color: white;">載入工作站列表失敗</div>';
+            }
+        }
+
+        // 顯示工作站列表
+        function displayWorkstations(workstations) {
+            const grid = document.getElementById('workstationGrid');
+            
+            grid.innerHTML = workstations.map(ws => `
+                <div class="workstation-card" onclick="viewWorkstationDetail('${ws.id}')">
+                    <div class="workstation-header">
+                        <div class="workstation-info">
+                            <h3>${ws.name}</h3>
+                            <div class="workstation-location">📍 ${ws.location}</div>
+                        </div>
+                        <div class="status-badge status-${ws.status}">
+                            ${getStatusText(ws.status)}
+                        </div>
+                    </div>
+                    
+                    <div class="workstation-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${ws.efficiency}%</div>
+                            <div class="stat-label">效率</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${ws.currentLoad}/${ws.capacity}</div>
+                            <div class="stat-label">負載</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${(ws.currentLoad/ws.capacity)*100}%"></div>
+                    </div>
+                    
+                    <div class="workstation-details">
+                        <div class="detail-row">
+                            <span class="detail-label">操作員</span>
+                            <span class="detail-value">${ws.operator || '未分配'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">當前工單</span>
+                            <span class="detail-value">${ws.activeWorkOrder || '無'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">下次保養</span>
+                            <span class="detail-value">${formatDate(ws.nextMaintenance)}</span>
+                        </div>
+                        
+                        ${ws.equipment ? `
+                            <div class="equipment-list">
+                                <div class="detail-label" style="margin-bottom: 8px;">設備:</div>
+                                ${ws.equipment.map(eq => `<span class="equipment-item">${eq}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="action-buttons">
+                        ${ws.status === 'idle' ? `
+                            <button class="btn btn-primary" onclick="event.stopPropagation(); selectWorkstation('${ws.id}')">
+                                🎯 選擇工作站
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-secondary" onclick="event.stopPropagation(); viewSOP('${ws.currentSOP}')">
+                            📋 查看 SOP
+                        </button>
+                        <button class="btn btn-secondary" onclick="event.stopPropagation(); viewEquipment('${ws.id}')">
+                            ⚙️ 設備配置
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 獲取狀態文字
+        function getStatusText(status) {
+            const statusMap = {
+                'active': '運行中',
+                'idle': '待機',
+                'maintenance': '維護中'
+            };
+            return statusMap[status] || status;
+        }
+
+        // 格式化日期
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('zh-TW');
+        }
+
+        // 查看工作站詳情
+        async function viewWorkstationDetail(workstationId) {
+            window.location.href = `/workstation-detail.html?id=${workstationId}`;
+        }
+
+        // 選擇工作站
+        function selectWorkstation(workstationId) {
+            currentWorkstation = workstationId;
+            document.getElementById('selectModal').style.display = 'block';
+        }
+
+        // 關閉模態框
+        function closeModal() {
+            document.getElementById('selectModal').style.display = 'none';
+            currentWorkstation = null;
+            document.getElementById('selectForm').reset();
+        }
+
+        // 提交工作站選擇
+        document.getElementById('selectForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!currentWorkstation) return;
+            
+            const formData = new FormData(e.target);
+            const data = {
+                operatorId: formData.get('operatorId'),
+                operatorName: formData.get('operatorName')
+            };
+            
+            try {
+                const response = await fetch(`/api/workstations/${currentWorkstation}/select`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('工作站選擇成功！');
+                    closeModal();
+                    loadWorkstations(); // 重新載入工作站列表
+                } else {
+                    alert('工作站選擇失敗：' + result.message);
+                }
+            } catch (error) {
+                console.error('選擇工作站失敗:', error);
+                alert('選擇工作站失敗，請稍後再試');
+            }
+        });
+
+        // 查看 SOP
+        function viewSOP(sopId) {
+            if (!sopId) {
+                alert('此工作站暫無 SOP');
+                return;
+            }
+            window.open(`/sop.html?id=${sopId}`, '_blank');
+        }
+
+        // 查看設備配置
+        function viewEquipment(workstationId) {
+            window.open(`/equipment.html?id=${workstationId}`, '_blank');
+        }
+
+        // 點擊模態框外部關閉
+        document.getElementById('selectModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // 頁面載入時獲取工作站列表
+        document.addEventListener('DOMContentLoaded', function() {
+            loadWorkstations();
+            
+            // 每30秒自動更新一次
+            setInterval(loadWorkstations, 30000);
+        });
+    </script>
+</body>
+</html>
