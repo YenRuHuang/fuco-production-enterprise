@@ -1,22 +1,41 @@
 /**
  * FUCO Production System - JWT 認證中間件
  * 處理用戶認證、權限驗證和 JWT Token 管理
+ * 使用純 JavaScript 實現，無 bcryptjs 依賴
  */
 
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 // JWT 密鑰 (生產環境應使用環境變數)
 const JWT_SECRET = process.env.JWT_SECRET || 'fuco-production-system-secret-key-2024';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
 
-// 模擬用戶資料庫
+// 純 JavaScript 密碼哈希函數 (替代 bcryptjs)
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, hashedPassword) {
+  if (hashedPassword.includes(':')) {
+    // 新格式: salt:hash
+    const [salt, hash] = hashedPassword.split(':');
+    const verifyHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+    return hash === verifyHash;
+  } else {
+    // 簡單格式: 直接比較 (用於測試)
+    return password === hashedPassword;
+  }
+}
+
+// 模擬用戶資料庫 - 使用簡單密碼格式
 const users = [
   {
     id: 1,
     username: 'admin',
-    // 密碼: admin123 (bcrypt 加密)
-    password: '$2a$10$yJytAjebVHzzf2KppTSBMuDC/V/7hbgbjXZCU90F1JFIgVnDN.JRS',
+    password: 'admin123', // 直接存儲明文密碼 (僅供測試)
     name: '系統管理員',
     role: 'admin',
     permissions: ['*'],
@@ -26,8 +45,7 @@ const users = [
   {
     id: 2,
     username: 'emp001',
-    // 密碼: password (bcrypt 加密)
-    password: '$2a$10$Sd2B4eIDsGLpRGmMUaK88OTlJuQL8osevMFY4rzPlrYi7g5tKwuhu',
+    password: 'password', // 直接存儲明文密碼 (僅供測試)
     name: '張三',
     role: 'operator',
     permissions: ['workstation:read', 'workstation:write', 'production:write'],
@@ -38,8 +56,7 @@ const users = [
   {
     id: 3,
     username: 'supervisor',
-    // 密碼: super123 (bcrypt 加密)
-    password: '$2a$10$XAjchHTgXIp/eEZAUXtmOe108zrP3YXpFJL5o68BpdTi/FTFmDYz2',
+    password: 'super123', // 直接存儲明文密碼 (僅供測試)
     name: '李主管',
     role: 'supervisor', 
     permissions: ['workstation:*', 'production:*', 'reports:read'],
@@ -49,8 +66,7 @@ const users = [
   {
     id: 4,
     username: 'qc001',
-    // 密碼: qc123 (bcrypt 加密)
-    password: '$2a$10$Vc6F81vbKfAS/ayEFYsBGeqMOKBKYV1k9/LvP84NTsjCMGP2LXWNu',
+    password: 'qc123', // 直接存儲明文密碼 (僅供測試)
     name: '王品管',
     role: 'quality',
     permissions: ['quality:*', 'reports:read', 'workstation:read'],
@@ -70,7 +86,8 @@ function generateToken(user) {
     username: user.username,
     role: user.role,
     department: user.department,
-    permissions: user.permissions
+    permissions: user.permissions,
+    name: user.name
   };
   
   return jwt.sign(payload, JWT_SECRET, { 
@@ -98,7 +115,7 @@ function verifyToken(token) {
 }
 
 /**
- * 用戶登入認證
+ * 用戶登入認證 (無 bcryptjs，使用純 JavaScript)
  * @param {string} username 用戶名
  * @param {string} password 密碼
  * @returns {Object|null} 認證結果
@@ -110,7 +127,8 @@ async function authenticateUser(username, password) {
     return null;
   }
   
-  const isValidPassword = await bcrypt.compare(password, user.password);
+  // 密碼驗證 (支援明文密碼用於測試)
+  const isValidPassword = verifyPassword(password, user.password);
   
   if (!isValidPassword) {
     return null;
@@ -288,5 +306,7 @@ module.exports = {
   requireRole,
   optionalAuth,
   refreshToken,
+  hashPassword,
+  verifyPassword,
   users // 導出用於測試和管理
 };
