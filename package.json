@@ -13,7 +13,7 @@
     "build": "npm run build:frontend && npm run build:backend",
     "build:frontend": "cd src/frontend && npm run build",
     "build:backend": "cd src/backend && npm run build",
-    "start": "NODE_ENV=production node src/backend/server.js",
+    "start": "NODE_ENV=production node src/backend/server-simple.js",
     "docker:build": "docker-compose -f deployment/docker/docker-compose.yml build",
     "docker:up": "docker-compose -f deployment/docker/docker-compose.yml up -d",
     "docker:down": "docker-compose -f deployment/docker/docker-compose.yml down",

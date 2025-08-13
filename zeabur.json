@@ -1,7 +1,7 @@
 {
   "name": "@mursfoto/fuco-production-enterprise",
   "build": {
-    "commands": ["npm install", "npm run build"],
+    "commands": ["npm install"],
     "outputDir": "."
   },
   "run": {
