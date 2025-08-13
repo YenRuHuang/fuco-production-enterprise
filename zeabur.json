@@ -1,0 +1,23 @@
+{
+  "name": "@mursfoto/fuco-production-enterprise",
+  "build": {
+    "commands": ["npm install", "npm run build"],
+    "outputDir": "."
+  },
+  "run": {
+    "command": "node src/backend/server-simple.js"
+  },
+  "environment": {
+    "NODE_ENV": "production",
+    "PORT": "8847"
+  },
+  "services": {
+    "web": {
+      "build": ".",
+      "port": 8847,
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}
