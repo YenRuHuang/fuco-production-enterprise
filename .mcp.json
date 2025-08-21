@@ -4,41 +4,52 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/murs/Documents/fuco-agents/fuco-dev-agent.js"
+        "./agents/fuco-dev-agent.js"
       ],
-      "env": {}
+      "env": {
+        "FUCO_PROJECT_PATH": "/Users/murs/Documents/fuco-production-enterprise"
+      }
     },
     "fuco-db": {
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/murs/Documents/fuco-agents/fuco-db-agent.js"
+        "./agents/fuco-db-agent.js"
       ],
-      "env": {}
+      "env": {
+        "FUCO_PROJECT_PATH": "/Users/murs/Documents/fuco-production-enterprise"
+      }
     },
     "fuco-monitor": {
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/murs/Documents/fuco-agents/fuco-monitor-agent.js"
+        "./agents/fuco-monitor-agent.js"
       ],
-      "env": {}
+      "env": {
+        "FUCO_PROJECT_PATH": "/Users/murs/Documents/fuco-production-enterprise"
+      }
     },
     "fuco-test": {
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/murs/Documents/fuco-agents/fuco-test-agent.js"
+        "./agents/fuco-test-agent.js"
       ],
-      "env": {}
+      "env": {
+        "FUCO_PROJECT_PATH": "/Users/murs/Documents/fuco-production-enterprise"
+      }
     },
     "fuco-planning": {
       "type": "stdio",
       "command": "node",
       "args": [
-        "/Users/murs/Documents/fuco-agents/fuco-planning-agent.js"
+        "./agents/fuco-planning-agent.js"
       ],
-      "env": {}
+      "env": {
+        "FUCO_PROJECT_PATH": "/Users/murs/Documents/fuco-production-enterprise",
+        "GENETIC_ALGORITHM_CONFIG": "./config/ga-config.json"
+      }
     }
   }
 }
