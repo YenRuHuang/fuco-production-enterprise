@@ -1,0 +1,44 @@
+{
+  "mcpServers": {
+    "fuco-dev": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/Users/murs/Documents/fuco-agents/fuco-dev-agent.js"
+      ],
+      "env": {}
+    },
+    "fuco-db": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/Users/murs/Documents/fuco-agents/fuco-db-agent.js"
+      ],
+      "env": {}
+    },
+    "fuco-monitor": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/Users/murs/Documents/fuco-agents/fuco-monitor-agent.js"
+      ],
+      "env": {}
+    },
+    "fuco-test": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/Users/murs/Documents/fuco-agents/fuco-test-agent.js"
+      ],
+      "env": {}
+    },
+    "fuco-planning": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/Users/murs/Documents/fuco-agents/fuco-planning-agent.js"
+      ],
+      "env": {}
+    }
+  }
+}

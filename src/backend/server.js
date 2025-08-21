@@ -17,7 +17,7 @@ require('dotenv').config();
 const { initDatabase } = require('./config/database');
 const { logger } = require('./utils/logger');
 const { errorHandler } = require('./middleware/errorHandler');
-const { authenticateToken } = require('./middleware/auth');
+const { authMiddleware: authenticateToken } = require('./middleware/auth');
 
 // 引入路由
 const authRoutes = require('./routes/auth');
@@ -28,6 +28,8 @@ const defectRoutes = require('./routes/defect');
 const bomRoutes = require('./routes/bom');
 const reportRoutes = require('./routes/report');
 const adminRoutes = require('./routes/admin');
+const efficiencyRoutes = require('./routes/efficiency');
+const planningRoutes = require('./routes/planning');
 
 // 初始化 Express 應用
 const app = express();
@@ -91,6 +93,7 @@ if (process.env.RATE_LIMIT_ENABLED === 'true') {
 // 靜態檔案服務
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 app.use('/sop-images', express.static(path.join(__dirname, '../../uploads/sop-images')));
+app.use('/', express.static(path.join(__dirname, '../frontend')));
 
 // 請求日誌
 app.use((req, res, next) => {
@@ -145,6 +148,8 @@ app.use('/api/defects', authenticateToken, defectRoutes);
 app.use('/api/bom', authenticateToken, bomRoutes);
 app.use('/api/reports', authenticateToken, reportRoutes);
 app.use('/api/admin', authenticateToken, adminRoutes);
+app.use('/api/efficiency', authenticateToken, efficiencyRoutes);
+app.use('/api/planning', authenticateToken, planningRoutes);
 
 // ========================================
 // WebSocket 配置

@@ -5,17 +5,74 @@
   "private": true,
   "license": "PROPRIETARY",
   "author": "Mursfoto Team",
-  "main": "src/backend/server.js",
+  "main": "src/backend/server-simple.js",
+  "bin": {
+    "fuco": "bin/fuco-cli.js"
+  },
   "scripts": {
-    "build": "echo 'Build completed'",
-    "start": "node src/backend/server-simple.js"
+    "start": "node src/backend/server-simple.js",
+    "start:full": "node src/backend/server.js",
+    "dev": "NODE_ENV=development npm start",
+    "dev:simple": "NODE_ENV=development node src/backend/server-simple.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest tests/unit/",
+    "test:integration": "jest tests/integration/", 
+    "test:efficiency": "jest tests/unit/efficiency.test.js tests/integration/efficiency-api.test.js",
+    "test:fuco-agent": "./scripts/run-tests.sh",
+    "test:planning": "jest tests/planning-algorithm.test.js",
+    "test:planning:watch": "jest tests/planning-algorithm.test.js --watch",
+    "test:system": "node test-system-complete.js",
+    "test:auth": "node test-jwt-auth.js",
+    "test:api": "node tests/api/*.test.js",
+    "test:performance": "node tests/performance/*.test.js",
+    "coverage:analyze": "node tests/coverage/coverage-analyzer.js",
+    "doctor": "node src/utils/doctor.js",
+    "config:check": "node src/config/environment.js",
+    "build": "echo 'Build completed - FUCO Production System'",
+    "deploy:docker": "docker-compose -f deployment/docker/docker-compose.yml up -d",
+    "deploy:staging": "NODE_ENV=staging npm run deploy:docker",
+    "deploy:production": "NODE_ENV=production npm run deploy:docker",
+    "logs": "tail -f logs/fuco.log",
+    "monitor": "echo 'Opening monitoring GUI...' && open http://localhost:8847/monitoring-gui.html",
+    "clean": "rm -rf logs/*.log && rm -rf test-reports/*",
+    "backup": "mkdir -p backups && cp -r database backups/database-$(date +%Y%m%d-%H%M%S)",
+    "agents": "node bin/fuco-agents.js",
+    "agent:dev": "echo 'Launching FUCO Development Agent...' && echo 'Use: Task(subagent_type=\"general-purpose\", prompt=\"Call fuco-dev agent\")'",
+    "agent:db": "echo 'Launching Database Management Agent...' && echo 'Use: Task(subagent_type=\"general-purpose\", prompt=\"Call fuco-db agent\")'",
+    "agent:planning": "echo 'Launching Production Planning Agent...' && echo 'Use: claude mcp invoke fuco-planning create_production_schedule'",
+    "agent:monitor": "echo 'Launching Production Monitoring Agent...' && echo 'Use: Task(subagent_type=\"general-purpose\", prompt=\"Call fuco-monitor agent\")'",
+    "agent:test": "echo 'Launching Integration Testing Agent...' && echo 'Use: Task(subagent_type=\"general-purpose\", prompt=\"Call fuco-test agent\")'",
+    "mcp:list": "claude mcp list",
+    "mcp:status": "claude mcp get fuco-dev && claude mcp get fuco-db && claude mcp get fuco-monitor && claude mcp get fuco-test",
+    "health:full": "npm run doctor && npm run test:system && npm run config:check",
+    "setup:complete": "npm install && npm run config:check && npm run doctor && npm run test",
+    "quick:start": "./scripts/quick-start.sh || npm run setup:complete && npm start"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.6.1",
     "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.2"
+    "express-rate-limit": "^8.0.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "axios": "^1.11.0",
+    "colors": "^1.4.0",
+    "commander": "^9.5.0",
+    "figlet": "^1.8.2",
+    "inquirer": "^8.2.7",
+    "supertest": "^6.3.4",
+    "jest": "^29.7.0",
+    "babel-jest": "^29.7.0",
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "jest-html-reporters": "^3.1.5"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -27,6 +84,23 @@
     "mes",
     "erp",
     "fuco",
-    "enterprise"
-  ]
+    "enterprise",
+    "cli",
+    "monitoring",
+    "automation"
+  ],
+  "fuco": {
+    "version": "1.0.0",
+    "features": {
+      "monitoring": true,
+      "reports": true,
+      "quality": true,
+      "equipment": true,
+      "materials": false
+    },
+    "cli": {
+      "doctor": "src/utils/doctor.js",
+      "config": "src/config/environment.js"
+    }
+  }
 }

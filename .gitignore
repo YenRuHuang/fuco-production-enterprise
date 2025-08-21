@@ -132,3 +132,21 @@ error.log
 # Local configuration files
 config/local.json
 config/production.json
+
+# FUCO specific files
+# Temporary test files
+test-*.js
+*-test-results.json
+test-efficiency-results.json
+
+# Generated dashboard files with timestamps
+*-1755732008*.html
+*-1755732008*.json
+src/config/dashboard-*.json
+
+# Coverage reports (keep structure, ignore generated content)
+coverage-reports/*.html
+coverage-reports/*.json
+
+# MCP temporary files
+.mcp-temp/
