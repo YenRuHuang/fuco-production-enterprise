@@ -528,9 +528,11 @@ npm run update
 - **企業級部署指南**: [./docs/installation/](./docs/installation/)
 
 ### 🎯 學習資源
-- **FUCO 案例深度解析**: 詳細分析項目架構和算法實現
-- **SubAgents 實戰應用**: 從零開始學習 MCP SubAgents
-- **生產排程算法**: 遺傳算法在製造業的實際應用
+- **FUCO 案例深度解析**: [Mursfoto CLI 案例合集](https://github.com/YenRuHuang/mursfoto-cli/blob/main/docs/CASE_STUDY.md)
+- **SubAgents 實戰應用**: [MCP SubAgents 完整指南](https://github.com/YenRuHuang/mursfoto-cli/blob/main/docs/MCP_SUBAGENTS_GUIDE.md)
+- **生產排程算法**: [遺傳算法在製造業的實際應用](./docs/SUBAGENTS_TECHNICAL_GUIDE.md)
+- **Prompt 範例集**: [Mursfoto CLI Prompt 模板](https://github.com/YenRuHuang/mursfoto-cli/blob/main/docs/PROMPT_TEMPLATES.md)
+- **實際工作流程**: [從零到部署的完整流程](https://github.com/YenRuHuang/mursfoto-cli/blob/main/docs/PRACTICAL_WORKFLOW.md)
 
 ## 🏆 開發團隊
 
