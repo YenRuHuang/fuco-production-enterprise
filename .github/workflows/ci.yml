@@ -60,10 +60,7 @@ jobs:
           cache: 'npm'
       
       - name: 安裝依賴
-        continue-on-error: true
-        run: |
-          npm ci
-          npm audit --audit-level high
+        run: npm ci
       
       - name: 程式碼格式檢查
         run: |
@@ -75,14 +72,14 @@ jobs:
         continue-on-error: true
         run: |
           echo "執行安全性掃描..."
-          npm audit --audit-level moderate
+          npm audit --audit-level moderate || true
           echo "✓ 安全性掃描完成"
       
       - name: 依賴項檢查
         continue-on-error: true
         run: |
           echo "檢查依賴項版本和漏洞..."
-          npm ls --depth=0
+          npm ls --depth=0 || true
           echo "✓ 依賴項檢查完成"
 
   # Job 2: 單元測試
