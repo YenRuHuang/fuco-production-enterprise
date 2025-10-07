@@ -6,13 +6,13 @@
 name: FUCO Production System CI/CD
 
 on:
-  push:
-    branches: [ main, develop, feature/* ]
-  pull_request:
-    branches: [ main, develop ]
-  schedule:
-    # 每日自動測試 (UTC 02:00 = 台灣時間 10:00)
-    - cron: '0 2 * * *'
+  # push:
+  #   branches: [ main, develop, feature/* ]
+  # pull_request:
+  #   branches: [ main, develop ]
+  # schedule:
+  #   # 每日自動測試 (UTC 02:00 = 台灣時間 10:00)
+  #   - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
       test_type:
